@@ -1175,14 +1175,22 @@
 				// Create a model for each entry in 'keyContents' that is to be fetched
 				var models = _.map( toFetch, function( item ) {
 					var model;
-
-					if ( _.isObject( item ) ) {
-						model = rel.relatedModel.build( item );
-					}
-					else {
-						var attrs = {};
-						attrs[ rel.relatedModel.prototype.idAttribute ] = item;
-						model = rel.relatedModel.build( attrs );
+				
+					// If we are forcing update and an 'id' is supplied, look for an existing model in the store.
+					var id = Backbone.Relational.store.resolveIdForItem( rel.relatedModel, item );
+					if ( update && id )
+						model = Backbone.Relational.store.find( rel.relatedModel, id );
+						
+					// If we haven't found an existing model, build one.
+					if ( !model ) {
+						if ( _.isObject( item ) ) {
+							model = rel.relatedModel.build( item );
+						}
+						else {
+							var attrs = {};
+							attrs[ rel.relatedModel.prototype.idAttribute ] = item;
+							model = rel.relatedModel.build( attrs );
+						}
 					}
 
 					return model;
